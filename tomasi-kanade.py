@@ -16,6 +16,7 @@ def getFeatures(img, n=500, quality=0.01, min_distance=10, draw = False):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #Use Shi-Tomasi corner detection to get the features
     features = cv2.goodFeaturesToTrack(gray, n, quality, min_distance)
+    features = features.reshape(-1, 2)
     #Convert the features to float32
     features = np.float32(features)
     #If draw is true, draw the features on the image
