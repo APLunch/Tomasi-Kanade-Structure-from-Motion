@@ -12,7 +12,7 @@ from mpl_toolkits import mplot3d
 import os, os.path
 
 # Function to get features from the image
-def getFeatures(img, n=1000, quality=0.01, min_distance=3, draw = False):
+def getFeatures(img, n=3000, quality=0.01, min_distance=7, draw = False):
     #Convert the image to gray scale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #Use Shi-Tomasi corner detection to get the features
@@ -37,7 +37,7 @@ def getMeasurementMatrix(images):
     #Container for the good matches
     good_matches = []
     #Set the parameters for the optical flow
-    lk_params = dict( winSize  = (15,15),
+    lk_params = dict( winSize  = (40,40),
                         maxLevel = 2,
                         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     #Get the features from the first image
@@ -46,7 +46,6 @@ def getMeasurementMatrix(images):
     good_matches.append([old_features, np.ones((old_features.shape[0],1))])
     #Get the features from the images
     for img in images[1:]:
-        features = getFeatures(img)
         #calculate optical flow
         p1, st, err = cv2.calcOpticalFlowPyrLK(old_img, img, old_features, None, **lk_params)
         #Select good points
@@ -54,13 +53,12 @@ def getMeasurementMatrix(images):
         good_old = old_features
         #Old features are the new features for the next image
         old_img = img
-        old_features = features
+        old_features = good_new
         #Append the good matches to the container
         good_matches.append([good_new,st])
 
     # Construct measurement matrix W
     good_index = []
-    print(old_features.shape)
     for i in range(old_features.shape[0]):
         good = True
         for match in good_matches:
@@ -76,8 +74,18 @@ def getMeasurementMatrix(images):
             selected_features_at_frame.append(match[0][index])
         selected_features.append(selected_features_at_frame)
     selected_features = np.array(selected_features)
-    print(selected_features.shape)
+    print("features selected", selected_features.shape)
 
+    #Draw the selected features on the images
+    for i in range(len(images)):
+        for feature in selected_features[:,i]:
+            x, y = feature.ravel()
+            cv2.circle(images[i], (x, y), 3, (0, 0, 255), -1)
+        #Show the images
+        cv2.imshow('image', images[i])
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    
     #Construct matrix U and V where element i,j in U is the x coordinate of the jth feature in the ith image
     #Element i,j in V is the y coordinate of the jth feature in the ith image
     U = selected_features[:, :, 0]
