@@ -12,11 +12,9 @@ from mpl_toolkits import mplot3d
 import os, os.path
 
 # Function to get features from the image
-def getFeatures(img, n=1000, quality=0.01, min_distance=3, draw = False):
-    #Convert the image to gray scale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def getFeatures(img, n=5000, quality=0.01, min_distance=1, draw = False):
     #Use Shi-Tomasi corner detection to get the features
-    features = cv2.goodFeaturesToTrack(gray, n, quality, min_distance)
+    features = cv2.goodFeaturesToTrack(img, n, quality, min_distance)
     features = features.reshape(-1, 2)
     #Convert the features to float32
     features = np.float32(features)
@@ -48,9 +46,9 @@ def getMeasurementMatrix(cap):
     #Get the features from the images
     while(1):
         ret, frame = cap.read()
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if not ret:
             break
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         #calculate optical flow
         p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
         old_gray = frame_gray
@@ -116,10 +114,10 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.scatter(X[0], X[1], X[2])
-    plt.show()
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title('3D coordinates of the features')
+    plt.show()
 
 
 
