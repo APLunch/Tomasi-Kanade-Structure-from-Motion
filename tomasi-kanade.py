@@ -8,10 +8,11 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 import os, os.path
 
 # Function to get features from the image
-def getFeatures(img, n=400, quality=0.01, min_distance=10, draw = False):
+def getFeatures(img, n=1000, quality=0.01, min_distance=3, draw = False):
     #Convert the image to gray scale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #Use Shi-Tomasi corner detection to get the features
@@ -59,6 +60,7 @@ def getMeasurementMatrix(images):
 
     # Construct measurement matrix W
     good_index = []
+    print(old_features.shape)
     for i in range(old_features.shape[0]):
         good = True
         for match in good_matches:
@@ -81,23 +83,24 @@ def getMeasurementMatrix(images):
     U = selected_features[:, :, 0]
     V = selected_features[:, :, 1]
     #Construct the measurement matrix W which is U stacked on top of V
-    W = np.vstack((U, V))
+    print("U Shape",U.shape)
+    print("V Shape",V.shape)
+    W = np.vstack((U.T, V.T))
     return W
 
         
         
 
 # Tomasi-Kanade Factorization from features
-def factorize(features):
-    #Get U and V matrices from the features
-    #Element i,j in the U matrix is the x coordinate of the jth feature in the ith image
-    #Element i,j in the V matrix is the y coordinate of the jth feature in the ith image
-    U = features[:, :, 0]
-    V = features[:, :, 1]
-    # W matrix is measurement matrix, which is U stacked on top of V
-    W = np.vstack((U, V))
+def factorize(measurement_matrix):
     #SVD decomposition of W
-    U, S, V = np.linalg.svd(W,full_matrices=True)
+    U, S, V = np.linalg.svd(measurement_matrix,full_matrices=True)
+    U = U[:, :3]
+    S = S[:3]
+    V = V[:3, :]
+    M = U * S
+    X = V
+    return M,X 
 
 
 #main function
@@ -112,7 +115,18 @@ if __name__ == "__main__":
     images = [cv2.imread(img) for img in images_filenames]
     #Get the good matches from the images
     W = getMeasurementMatrix(images)
-    print(W.shape)
+    print("W Shape",W.shape)
+    #Factorize the measurement matrix W
+    M,X = factorize(W) #M is the camera matrix, X is the 3D coordinates of the features
+    print("X Shape",X.shape)
+    #Plot the 3D coordinates of the features
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter(X[0], X[1], X[2])
+    plt.show()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('3D coordinates of the features')
 
 
 
