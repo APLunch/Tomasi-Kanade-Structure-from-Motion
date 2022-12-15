@@ -12,7 +12,7 @@ from mpl_toolkits import mplot3d
 import os, os.path
 
 # Function to get features from the image
-def getFeatures(img, n=1000, quality=0.01, min_distance=3, draw = False):
+def getFeatures(img, n=3000, quality=0.01, min_distance=3, draw = False):
     #Convert the image to gray scale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #Use Shi-Tomasi corner detection to get the features

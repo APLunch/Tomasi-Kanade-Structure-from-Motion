@@ -76,15 +76,14 @@ def getMeasurementMatrix(images):
     selected_features = np.array(selected_features)
     print("features selected", selected_features.shape)
 
-    #Draw the selected features on the images
-    for i in range(len(images)):
-        for feature in selected_features[:,i]:
-            x, y = feature.ravel()
-            cv2.circle(images[i], (x, y), 3, (0, 0, 255), -1)
-        #Show the images
-        cv2.imshow('image', images[i])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    #Draw the optical flow on the last image
+    for i in range(len(selected_features)):
+        x1, y1 = selected_features[i][0]
+        x2, y2 = selected_features[i][1]
+        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    cv2.imshow('image', img)
+    cv2.waitKey(0)
+
     
     #Construct matrix U and V where element i,j in U is the x coordinate of the jth feature in the ith image
     #Element i,j in V is the y coordinate of the jth feature in the ith image
